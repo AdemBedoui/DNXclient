@@ -189,8 +189,8 @@ export default function DNXAnalyzer() {
 
     try {
       // Essayer d'abord avec une API CORS-friendly
-      let response
-      let data
+      let response: Response
+      let data: any
 
       try {
         // Première tentative avec ipapi.co (CORS-friendly)
