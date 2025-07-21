@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Search,
   Globe,
@@ -64,6 +63,32 @@ interface IPLocationData {
   error?: string
 }
 
+// ✅ Nouveau type ajouté ici
+type IPApiResponse = {
+  continent?: string
+  continent_code?: string
+  country?: string
+  country_name?: string
+  city?: string
+  isp?: string
+  org?: string
+  error?: string
+  status?: string
+}
+
+const getStatusColor = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "registered":
+      return "bg-emerald-500 hover:bg-emerald-600"
+    case "available":
+      return "bg-blue-500 hover:bg-blue-600"
+    case "error":
+      return "bg-red-500 hover:bg-red-600"
+    default:
+      return "bg-slate-500 hover:bg-slate-600"
+  }
+}
+
 export default function DNXAnalyzer() {
   const [searchTerm, setSearchTerm] = useState("")
   const [results, setResults] = useState<DomainResult[]>([])
@@ -71,14 +96,16 @@ export default function DNXAnalyzer() {
   const [hasSearched, setHasSearched] = useState(false)
   const [ipLocationData, setIpLocationData] = useState<{ [key: string]: IPLocationData }>({})
   const [copiedItems, setCopiedItems] = useState<{ [key: string]: boolean }>({})
-  const [validationError, setValidationError] = useState<string | null>(null) // New state for validation error
+  const [validationError, setValidationError] = useState<string | null>(null)
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => setIsClient(true), []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    setValidationError(null) // Clear previous validation errors
+    setValidationError(null)
     if (!searchTerm.trim()) return
 
-    // New validation: Check for domain extension
     if (!searchTerm.includes(".")) {
       setValidationError("Please enter a full domain name, including the extension (e.g., example.com, example.tn).")
       return
@@ -88,12 +115,9 @@ export default function DNXAnalyzer() {
     try {
       const response = await fetch("https://dnxapi.bedouiadem.tech/api/check-domain", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: searchTerm.trim() }),
       })
-
       const data = await response.json()
 
       if (response.ok) {
@@ -103,7 +127,7 @@ export default function DNXAnalyzer() {
         setResults([{ domain: searchTerm.trim(), status: "Error", error: data.error || "Unknown error" }])
         setHasSearched(true)
       }
-    } catch (error) {
+    } catch {
       setResults([{ domain: searchTerm.trim(), status: "Error", error: "Failed to connect to API" }])
       setHasSearched(true)
     } finally {
@@ -113,70 +137,7 @@ export default function DNXAnalyzer() {
 
   const handleSearchTermChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
-    if (validationError) {
-      setValidationError(null) // Clear error when user starts typing
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "registered":
-        return "bg-emerald-500 hover:bg-emerald-600"
-      case "available":
-        return "bg-blue-500 hover:bg-blue-600"
-      case "error":
-        return "bg-red-500 hover:bg-red-600"
-      default:
-        return "bg-slate-500 hover:bg-slate-600"
-    }
-  }
-
-  const getSSLStatusColor = (status?: string) => {
-    switch (status?.toLowerCase()) {
-      case "valid":
-        return "text-emerald-600 bg-emerald-50 border-emerald-200"
-      case "invalid":
-        return "text-red-600 bg-red-50 border-red-200"
-      case "error":
-        return "text-amber-600 bg-amber-50 border-amber-200"
-      default:
-        return "text-slate-600 bg-slate-50 border-slate-200"
-    }
-  }
-
-  const getSSLStatusIcon = (status?: string) => {
-    switch (status?.toLowerCase()) {
-      case "valid":
-        return <CheckCircle className="w-4 h-4" />
-      case "invalid":
-        return <XCircle className="w-4 h-4" />
-      case "error":
-        return <AlertCircle className="w-4 h-4" />
-      default:
-        return <AlertCircle className="w-4 h-4" />
-    }
-  }
-
-  const formatDomainStatus = (statuses: string[]) => {
-    return statuses.map((status) =>
-      status
-        .toLowerCase()
-        .split(/(?=[A-Z])/)
-        .join(" ")
-        .replace(/^\w/, (c) => c.toUpperCase()),
-    )
-  }
-
-  const copyToClipboard = async (text: string, id: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
-      setCopiedItems((prev) => ({ ...prev, [id]: true }))
-      setTimeout(() => {
-        setCopiedItems((prev) => ({ ...prev, [id]: false }))
-      }, 2000)
-    } catch (error) {
-      console.error("Failed to copy:", error)
-    }
+    if (validationError) setValidationError(null)
   }
 
   const fetchIPLocation = async (ip: string) => {
@@ -188,12 +149,10 @@ export default function DNXAnalyzer() {
     }))
 
     try {
-      // Essayer d'abord avec une API CORS-friendly
       let response: Response
-      let data: any
+      let data: IPApiResponse
 
       try {
-        // Première tentative avec ipapi.co (CORS-friendly)
         response = await fetch(`https://ipapi.co/${ip}/json/`)
         data = await response.json()
 
@@ -211,14 +170,13 @@ export default function DNXAnalyzer() {
           }))
           return
         }
-      } catch (error) {
+      } catch {
         console.log("ipapi.co failed, trying alternative...")
       }
 
       try {
-        // Deuxième tentative avec ip-api.com via JSONP ou proxy
         response = await fetch(
-          `https://cors-anywhere.herokuapp.com/http://ip-api.com/json/${ip}?fields=continent,country,city,isp,org,query`,
+          `https://cors-anywhere.herokuapp.com/http://ip-api.com/json/${ip}?fields=continent,country,city,isp,org,query`
         )
         data = await response.json()
 
@@ -236,12 +194,11 @@ export default function DNXAnalyzer() {
           }))
           return
         }
-      } catch (error) {
+      } catch {
         console.log("ip-api.com with proxy failed...")
       }
 
       try {
-        // Troisième tentative avec ipinfo.io (gratuit, CORS-friendly)
         response = await fetch(`https://ipinfo.io/${ip}/json`)
         data = await response.json()
 
@@ -259,11 +216,10 @@ export default function DNXAnalyzer() {
           }))
           return
         }
-      } catch (error) {
+      } catch {
         console.log("ipinfo.io failed...")
       }
 
-      // Si toutes les tentatives échouent
       setIpLocationData((prev) => ({
         ...prev,
         [ip]: {
@@ -271,8 +227,8 @@ export default function DNXAnalyzer() {
           loading: false,
         },
       }))
-    } catch (error) {
-      console.error("All IP location services failed:", error)
+    } catch {
+      console.error("All IP location services failed.")
       setIpLocationData((prev) => ({
         ...prev,
         [ip]: {
@@ -280,6 +236,64 @@ export default function DNXAnalyzer() {
           loading: false,
         },
       }))
+    }
+  }
+
+  const copyToClipboard = async (text: string, key: string) => {
+    if (typeof window !== "undefined") {
+      try {
+        await navigator.clipboard.writeText(text)
+        setCopiedItems((prev) => ({ ...prev, [key]: true }))
+        setTimeout(() => setCopiedItems((prev) => ({ ...prev, [key]: false })), 2000)
+      } catch (err) {
+        console.error("Failed to copy text: ", err)
+      }
+    }
+  }
+
+  const formatDomainStatus = (statuses: string[] | undefined) => {
+    if (!statuses || statuses.length === 0) return []
+    return statuses.map((status) => {
+      switch (status.toLowerCase()) {
+        case "registered":
+          return "Registered"
+        case "available":
+          return "Available"
+        case "error":
+          return "Error"
+        default:
+          return status
+      }
+    })
+  }
+
+  const getSSLStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "valid":
+        return "bg-emerald-500"
+      case "expired":
+        return "bg-red-500"
+      case "invalid":
+        return "bg-red-500"
+      case "unknown":
+        return "bg-slate-500"
+      default:
+        return "bg-slate-500"
+    }
+  }
+
+  const getSSLStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "valid":
+        return <CheckCircle className="w-4 h-4 text-green-600" />
+      case "expired":
+        return <XCircle className="w-4 h-4 text-red-600" />
+      case "invalid":
+        return <AlertCircle className="w-4 h-4 text-red-600" />
+      case "unknown":
+        return <HelpCircle className="w-4 h-4 text-slate-600" />
+      default:
+        return <HelpCircle className="w-4 h-4 text-slate-600" />
     }
   }
 
