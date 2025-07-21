@@ -1,21 +1,25 @@
-# Use official Node.js image
-FROM node:20-slim
-
-# Set working directory
+# --- Stage 1: Build the Next.js app ---
+FROM node:20-slim AS builder
 WORKDIR /app
 
-# Install dependencies
 COPY package.json package-lock.json* ./
-RUN npm install
-
-# Copy the rest of the code
+RUN npm ci
 COPY . .
-
-# Build the Next.js app
 RUN npm run build
 
-# Expose port 3000 (default for Next.js)
-EXPOSE 3000
+# --- Stage 2: Run the Next.js app in production ---
+FROM node:20-slim
+WORKDIR /app
 
-# Start Next.js in production mode
-CMD ["npm", "start"]
+# 1. Copy built app and node_modules from builder
+COPY --from=builder /app .
+
+# 2. Set a configurable port (default 3000)
+ARG PORT=3000
+ENV PORT=${PORT}
+
+# 3. Expose the port
+EXPOSE ${PORT}
+
+# 4. Start Next.js in production mode, using the PORT env
+CMD ["sh", "-c", "npm run start -- -p $PORT"]
