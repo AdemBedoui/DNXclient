@@ -113,7 +113,7 @@ export default function DNXAnalyzer() {
 
     setLoading(true)
     try {
-      const response = await fetch("https://dnxapi.oxahost-support.tn/api/check-domain", {
+      const response = await fetch("https://dn-xapi.vercel.app/api/check-domain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: searchTerm.trim() }),
