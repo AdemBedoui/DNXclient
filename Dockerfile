@@ -1,5 +1,5 @@
 # --- Stage 1: Build the Next.js app ---
-FROM node:20-slim AS builder
+FROM node:22-slim AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
@@ -8,7 +8,7 @@ COPY . .
 RUN npm run build
 
 # --- Stage 2: Run the Next.js app in production ---
-FROM node:20-slim
+FROM node:22-slim
 WORKDIR /app
 
 # 1. Copy built app and node_modules from builder
