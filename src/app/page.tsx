@@ -5,6 +5,9 @@ import { Radar } from "@/components/radar"
 import { RecentSearches } from "@/components/recent-searches"
 import { SearchForm } from "@/components/search-form"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Faq, FAQ } from "@/components/faq"
+import { JsonLd } from "@/components/json-ld"
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site"
 
 const EXAMPLES = ["google.tn", "oxahost.tn", "github.com", "bbc.co.uk"]
 
@@ -20,6 +23,7 @@ const CHECKS = [
 export default function Home() {
   return (
     <main className="flex flex-1 flex-col">
+      <JsonLd data={STRUCTURED_DATA} />
       <header className="flex items-center justify-between px-4 py-4 lg:px-8">
         <Logo />
         <div className="flex items-center gap-4">
@@ -33,7 +37,7 @@ export default function Home() {
       <section className="grid flex-1 items-center gap-10 px-4 py-10 lg:grid-cols-[1.15fr_1fr] lg:px-8 xl:gap-16 xl:px-16">
         <div className="max-w-3xl">
           <p className="hud-label mb-6 flex items-center gap-3">
-            <span className="h-px w-10 bg-brand" /> Domain intelligence platform
+            <span className="h-px w-10 bg-brand" /> Free WHOIS · DNS lookup · SSL &amp; email checker
           </p>
           <h1 className="font-display text-5xl leading-[0.95] font-bold tracking-tight uppercase sm:text-7xl 2xl:text-8xl">
             See everything
@@ -76,6 +80,37 @@ export default function Home() {
           </div>
         ))}
       </section>
+
+      <Faq />
     </main>
   )
 }
+
+const STRUCTURED_DATA = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE_NAME,
+    url: SITE_URL,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/{domain}` },
+      "query-input": "required name=domain",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: SITE_NAME,
+    url: SITE_URL,
+    description: SITE_DESCRIPTION,
+    applicationCategory: "DeveloperApplication",
+    operatingSystem: "Any",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ.map(({ q, a }) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
+  },
+]

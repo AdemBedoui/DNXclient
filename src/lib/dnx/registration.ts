@@ -200,7 +200,21 @@ export async function checkRegistration(domain: string): Promise<{ data: Registr
   }
 
   data ??= { status: "unknown", source: "none", statuses: [], nameservers: [] }
-  return { data, findings: registrationFindings(data) }
+  return { data: redact(data), findings: registrationFindings(data) }
+}
+
+// Personal contact details (phone, email, street address) never leave the
+// server: report pages are public and indexed by search engines.
+const PRIVATE_LINE = /^([ \t]*(?:[\w ]*(?:phone|fax|e-?mail|address\d?|street|city|state\w*|zip code|postal code)[\w ]*?)[ \t.]*:)[ \t]*\S.*$/gim
+
+function redact(d: RegistrationData): RegistrationData {
+  const strip = (c?: Contact) => (c ? { ...c, email: undefined } : c)
+  return {
+    ...d,
+    registrant: strip(d.registrant),
+    admin: strip(d.admin),
+    raw: d.raw?.replace(PRIVATE_LINE, "$1 [redacted]"),
+  }
 }
 
 function registrationFindings(d: RegistrationData): Finding[] {

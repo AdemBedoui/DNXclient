@@ -12,15 +12,18 @@ export type SectionState<K extends SectionName> =
 
 export type ReportState = { [K in SectionName]: SectionState<K> }
 
-const initial = () => Object.fromEntries(SECTIONS.map((s) => [s, { status: "loading" }])) as ReportState
+const loadingState = () => Object.fromEntries(SECTIONS.map((s) => [s, { status: "loading" }])) as ReportState
 
-export function useReport(domain: string) {
-  const [state, setState] = useState<ReportState>(initial)
+/** `initial` holds sections already rendered on the server; they are not fetched again on first load. */
+export function useReport(domain: string, initial?: Partial<ReportState>) {
+  const [state, setState] = useState<ReportState>(() => ({ ...loadingState(), ...initial }))
   const [run, setRun] = useState(0)
 
   useEffect(() => {
     const ctrl = new AbortController()
+    const skip = run === 0 ? new Set(Object.keys(initial ?? {})) : new Set<string>()
     for (const section of SECTIONS) {
+      if (skip.has(section)) continue
       fetch(`/api/check/${section}?domain=${encodeURIComponent(domain)}${run ? `&r=${run}` : ""}`, { signal: ctrl.signal })
         .then(async (res) => {
           const body = await res.json()
@@ -34,10 +37,12 @@ export function useReport(domain: string) {
     }
     addRecent(domain)
     return () => ctrl.abort()
+    // `initial` only matters for the first run; ignoring later identity changes is intended.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domain, run])
 
   const rerun = useCallback(() => {
-    setState(initial())
+    setState(loadingState())
     setRun((r) => r + 1)
   }, [])
 

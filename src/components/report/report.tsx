@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckCircle2, Download, ExternalLink, Link as LinkIcon, RefreshCw, ShoppingCart } from "lucide-react"
+import { CheckCircle2, Download, ExternalLink, Link as LinkIcon, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 import { CATEGORY_LABEL } from "@/lib/dnx/score"
 import type { Category, Finding } from "@/lib/dnx/types"
@@ -11,8 +11,8 @@ import { ageOf, daysFrom, formatDate, Skeleton, SEVERITY_STYLE, Tag } from "./pr
 import { ScoreRing } from "./score-ring"
 import { useReport, type ReportState } from "./use-report"
 
-export function Report({ domain }: { domain: string }) {
-  const { state, findings, score, done, progress, rerun } = useReport(domain)
+export function Report({ domain, initial }: { domain: string; initial?: Partial<ReportState> }) {
+  const { state, findings, score, done, progress, rerun } = useReport(domain, initial)
   const reg = state.registration
 
   if (reg.status === "done" && reg.data.status === "available") {
@@ -243,15 +243,7 @@ function AvailableView({ domain }: { domain: string }) {
     <section className="hud overflow-hidden px-6 py-16 text-center sm:py-24">
       <Tag tone="pass"><CheckCircle2 className="size-3" /> available</Tag>
       <h1 className="text-glow mt-6 font-display text-4xl font-bold tracking-wide break-all text-brand sm:text-7xl">{domain}</h1>
-      <p className="mx-auto mt-4 max-w-lg text-muted-foreground">No registration found in the registry. This domain is free — claim it before someone else does.</p>
-      <a
-        href={`https://www.oxahost.com/domains/register?domain=${encodeURIComponent(domain)}`}
-        target="_blank"
-        rel="noopener"
-        className="mt-10 inline-flex items-center gap-2 bg-brand px-6 py-3 font-mono text-sm font-semibold tracking-widest text-brand-foreground uppercase transition hover:shadow-[0_0_32px_-4px_var(--brand)]"
-      >
-        <ShoppingCart className="size-4" /> Register on Oxahost
-      </a>
+      <p className="mx-auto mt-4 max-w-lg text-muted-foreground">No registration was found in the registry, so this domain is not registered yet.</p>
       <div className="mt-14">
         <p className="hud-label mb-3">Also scan</p>
         <div className="flex flex-wrap justify-center gap-2">
