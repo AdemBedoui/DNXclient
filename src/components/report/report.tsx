@@ -56,14 +56,26 @@ export function Report({ domain, initial }: { domain: string; initial?: Partial<
       </Telemetry>
 
       {/* ---- Raw intelligence ---- */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-12">
-        <WhoisPanel state={state} className="xl:col-span-3 xl:row-span-2" />
-        <DnsPanel state={state} domain={domain} className="md:col-span-2 xl:col-span-6 xl:row-span-2" />
-        <NetworkPanel state={state} className="xl:col-span-3" />
-        <PropagationPanel state={state} className="xl:col-span-3" />
-        <EmailPanel state={state} className="md:col-span-2 xl:col-span-5" />
-        <TlsPanel state={state} className="xl:col-span-3" />
-        <WebPanel state={state} className="md:col-span-1 xl:col-span-4" />
+      {/*
+        Masonry-style: on xl the panels sit in three independent columns so each
+        is only as tall as its content (a long panel never stretches its
+        neighbours). Below xl the column wrappers use `display: contents`, so the
+        panels flow into a normal 1–2 column grid in the `order` given.
+      */}
+      <div className="grid grid-flow-row-dense grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-12">
+        <div className="contents xl:col-span-3 xl:flex xl:flex-col xl:gap-4">
+          <WhoisPanel state={state} className="order-1 xl:order-none" />
+          <TlsPanel state={state} className="order-6 xl:order-none" />
+        </div>
+        <div className="contents xl:col-span-6 xl:flex xl:flex-col xl:gap-4">
+          <DnsPanel state={state} domain={domain} className="order-2 md:col-span-2 xl:order-none" />
+          <EmailPanel state={state} className="order-5 md:col-span-2 xl:order-none" />
+        </div>
+        <div className="contents xl:col-span-3 xl:flex xl:flex-col xl:gap-4">
+          <NetworkPanel state={state} className="order-3 xl:order-none" />
+          <PropagationPanel state={state} className="order-4 xl:order-none" />
+        </div>
+        <WebPanel state={state} className="order-7 md:col-span-2 xl:col-span-12" />
       </div>
 
       {/* ---- Analysis ---- */}

@@ -154,7 +154,10 @@ function webFindings(d: WebData): Finding[] {
 
   if (d.httpsRedirect) {
     const hsts = sh["strict-transport-security"]
+    const maxAge = Number(hsts?.match(/max-age\s*=\s*"?(\d+)/i)?.[1] ?? 0)
     if (!hsts) f.push({ id: "hdr-hsts", category: s, severity: "warn", title: "HSTS header missing", fix: "Add: Strict-Transport-Security: max-age=31536000; includeSubDomains" })
+    else if (maxAge === 0) f.push({ id: "hdr-hsts-zero", category: s, severity: "warn", title: "HSTS is disabled (max-age=0)", detail: "A max-age of 0 tells browsers to forget the HSTS policy, so it has no effect.", fix: "Set max-age to at least 15552000 (180 days), e.g. max-age=31536000; includeSubDomains" })
+    else if (maxAge < 15_552_000) f.push({ id: "hdr-hsts-short", category: s, severity: "info", title: `HSTS max-age is short (${Math.round(maxAge / 86400)} days)`, fix: "Use max-age=31536000 (1 year) once HTTPS is stable." })
     else f.push({ id: "hdr-hsts-ok", category: s, severity: "pass", title: "HSTS enabled" })
   }
   if (!sh["content-security-policy"]) f.push({ id: "hdr-csp", category: s, severity: "info", title: "No Content-Security-Policy", fix: "A CSP limits where scripts can load from and blocks most XSS attacks." })

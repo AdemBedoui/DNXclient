@@ -214,8 +214,31 @@ export function NetworkPanel({ state, className }: { state: ReportState; classNa
   )
 }
 
+const IPS_VISIBLE = 4
+
 function Network({ d, hosting }: { d: NetworkData; hosting?: string }) {
+  const [expanded, setExpanded] = useState(false)
+  // Most multi-IP domains (CDNs, load balancers) sit in one network, so show
+  // the network details once per ASN and the addresses as a compact list.
+  const groups = useMemo(() => {
+    const m = new Map<string, NetworkData["ips"]>()
+    for (const ip of d.ips) {
+      const key = ip.asn ? String(ip.asn) : "unknown"
+      m.set(key, [...(m.get(key) ?? []), ip])
+    }
+    return [...m.values()]
+  }, [d.ips])
+
   if (d.ips.length === 0) return <p className="font-mono text-xs text-muted-foreground">— domain does not resolve to an IP</p>
+
+  // Cap the total number of addresses shown across all groups until expanded.
+  const visibleByGroup: NetworkData["ips"][] = []
+  let budget = expanded ? Infinity : IPS_VISIBLE
+  for (const ips of groups) {
+    visibleByGroup.push(ips.slice(0, budget))
+    budget = Math.max(0, budget - ips.length)
+  }
+
   return (
     <div className="space-y-4">
       {hosting && (
@@ -224,22 +247,40 @@ function Network({ d, hosting }: { d: NetworkData; hosting?: string }) {
           <span className="font-display font-semibold tracking-wide text-brand">{hosting}</span>
         </div>
       )}
-      {d.ips.map((ip) => (
-        <div key={ip.ip}>
-          <div className="group mb-1 flex items-center gap-2">
-            <Tag tone="brand">IPv{ip.version}</Tag>
-            <span className="min-w-0 flex-1 font-mono text-sm break-all">{ip.ip}</span>
-            <CopyButton value={ip.ip} />
+      {groups.map((ips, gi) => {
+        const head = ips[0]
+        const visible = visibleByGroup[gi]
+        return (
+          <div key={head.asn ?? head.ip}>
+            <KVList>
+              <KV label="Network">{head.asName ?? <span className="text-muted-foreground">unknown</span>}</KV>
+              <KV label="ASN · Country" mono>{head.asn ? `AS${head.asn} · ${head.country ?? "—"} · ${head.registry ?? ""}` : undefined}</KV>
+            </KVList>
+            <SubHead right={<span className="font-mono text-[10px] text-muted-foreground">{ips.length}</span>}>Addresses</SubHead>
+            <ul className="space-y-1">
+              {visible.map((ip) => (
+                <li key={ip.ip} className="group grid grid-cols-[auto_1fr_auto] items-baseline gap-x-2 font-mono text-[12px]">
+                  <span className="text-[10px] text-brand">v{ip.version}</span>
+                  <span className="min-w-0 break-all">
+                    {ip.ip}
+                    <span className="block text-[10.5px] text-muted-foreground">
+                      {ip.prefix}
+                      {ip.ptr && ` · ${ip.ptr}`}
+                    </span>
+                  </span>
+                  <CopyButton value={ip.ip} />
+                </li>
+              ))}
+            </ul>
           </div>
-          <KVList>
-            <KV label="Network">{ip.asName}</KV>
-            <KV label="ASN" mono>{ip.asn ? `AS${ip.asn}` : undefined}</KV>
-            <KV label="Prefix" mono>{ip.prefix}</KV>
-            <KV label="Country · RIR" mono>{ip.country ? `${ip.country} · ${ip.registry}` : undefined}</KV>
-            <KV label="Reverse DNS" mono>{ip.ptr ?? <span className="text-muted-foreground">none</span>}</KV>
-          </KVList>
-        </div>
-      ))}
+        )
+      })}
+      {d.ips.length > IPS_VISIBLE && (
+        <button onClick={() => setExpanded((e) => !e)} className="hud-label hover:text-brand">
+          {expanded ? "▴ show less" : `▾ show all ${d.ips.length} addresses`}
+        </button>
+      )}
+      {d.ips.every((ip) => !ip.ptr) && <p className="font-mono text-[10.5px] text-muted-foreground">No reverse DNS (PTR) set.</p>}
     </div>
   )
 }
@@ -262,8 +303,8 @@ export function PropagationPanel({ state, className }: { state: ReportState; cla
                     <div className="text-sm font-medium">{p.resolver}</div>
                     <div className="font-mono text-[10.5px] text-muted-foreground">{p.location}</div>
                   </div>
-                  <div className="min-w-0 flex-1 text-right font-mono text-[12px]">
-                    {!p.ok ? <span className="text-fail">timeout</span> : p.A.length ? p.A.map((ip) => <div key={ip}>{ip}</div>) : <span className="text-muted-foreground">NXDOMAIN</span>}
+                  <div className="flex min-w-0 flex-1 flex-wrap justify-end gap-x-3 font-mono text-[12px]">
+                    {!p.ok ? <span className="text-fail">timeout</span> : p.A.length ? [...p.A].sort().map((ip) => <span key={ip}>{ip}</span>) : <span className="text-muted-foreground">NXDOMAIN</span>}
                   </div>
                 </li>
               ))}
@@ -448,7 +489,7 @@ function Web({ d }: { d: WebData }) {
   if (!d.reachable) return <p className="font-mono text-xs text-warn">! {d.error}</p>
   const hops = [...d.redirects, { url: d.finalUrl!, status: d.status! }]
   return (
-    <div className="grid gap-x-6 gap-y-2 md:grid-cols-2 xl:grid-cols-1 min-[1800px]:grid-cols-2">
+    <div className="grid gap-x-6 gap-y-2 md:grid-cols-2 xl:grid-cols-[1fr_1.4fr]">
       <div>
         <KVList>
           <KV label="Title">{d.title}</KV>
