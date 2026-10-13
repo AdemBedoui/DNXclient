@@ -34,7 +34,7 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="grid flex-1 items-center gap-10 px-4 py-10 lg:grid-cols-[1.15fr_1fr] lg:px-8 xl:gap-16 xl:px-16">
+      <section className="grid flex-1 items-center gap-10 px-4 py-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:px-8 xl:gap-16 xl:px-16">
         <div className="max-w-3xl">
           <p className="hud-label mb-6 flex items-center gap-3">
             <span className="h-px w-10 bg-brand" /> Free WHOIS · DNS lookup · SSL &amp; email checker

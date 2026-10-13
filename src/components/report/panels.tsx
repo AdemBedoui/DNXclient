@@ -259,7 +259,7 @@ function Network({ d, hosting }: { d: NetworkData; hosting?: string }) {
             <SubHead right={<span className="font-mono text-[10px] text-muted-foreground">{ips.length}</span>}>Addresses</SubHead>
             <ul className="space-y-1">
               {visible.map((ip) => (
-                <li key={ip.ip} className="group grid grid-cols-[auto_1fr_auto] items-baseline gap-x-2 font-mono text-[12px]">
+                <li key={ip.ip} className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-baseline gap-x-2 font-mono text-[12px]">
                   <span className="text-[10px] text-brand">v{ip.version}</span>
                   <span className="min-w-0 break-all">
                     {ip.ip}
@@ -405,7 +405,7 @@ function Email({ d }: { d: EmailData }) {
   const spfTone = !d.spf.record ? "fail" : d.spf.errors.length || /^\+?all$|^\?all$/i.test(d.spf.all ?? "") ? "warn" : "pass"
   return (
     <div className="grid gap-x-6 gap-y-2 md:grid-cols-2">
-      <div>
+      <div className="min-w-0">
         <SubHead right={<span className="font-mono text-[10px] text-muted-foreground">{d.mx.length}</span>}>MX</SubHead>
         <MonoList items={d.mx.map((m) => `${String(m.priority).padStart(2, " ")}  ${m.exchange}`)} empty="no MX — domain does not receive mail" />
 
@@ -423,7 +423,7 @@ function Email({ d }: { d: EmailData }) {
           <p className="font-mono text-xs text-muted-foreground/70">— no SPF record</p>
         )}
       </div>
-      <div>
+      <div className="min-w-0">
         <SubHead right={<Tag tone={policyTone}>{d.dmarc.policy ? `p=${d.dmarc.policy}` : "missing"}</Tag>}>DMARC</SubHead>
         {d.dmarc.record ? (
           <>
@@ -489,8 +489,8 @@ function Web({ d }: { d: WebData }) {
   if (!d.reachable) return <p className="font-mono text-xs text-warn">! {d.error}</p>
   const hops = [...d.redirects, { url: d.finalUrl!, status: d.status! }]
   return (
-    <div className="grid gap-x-6 gap-y-2 md:grid-cols-2 xl:grid-cols-[1fr_1.4fr]">
-      <div>
+    <div className="grid gap-x-6 gap-y-2 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+      <div className="min-w-0">
         <KVList>
           <KV label="Title">{d.title}</KV>
           <KV label="Response" mono>{d.responseMs} ms</KV>
@@ -516,7 +516,7 @@ function Web({ d }: { d: WebData }) {
           <p className="font-mono text-xs text-muted-foreground/70">— nothing detected</p>
         )}
       </div>
-      <div>
+      <div className="min-w-0">
         <SubHead right={<span className="font-mono text-[10px] text-muted-foreground">{Object.values(d.securityHeaders).filter(Boolean).length}/6</span>}>Security headers</SubHead>
         <ul className="space-y-1.5">
           {Object.entries(d.securityHeaders).map(([name, value]) => (
@@ -524,7 +524,7 @@ function Web({ d }: { d: WebData }) {
               <div className="flex items-center gap-2">
                 <span className={cn("size-1.5 shrink-0", value ? "bg-pass" : "bg-fail/70")} />
                 <span className="w-24 shrink-0 font-mono text-[11.5px]">{HEADER_SHORT[name]}</span>
-                <span className={cn("min-w-0 flex-1 truncate font-mono text-[11px]", value ? "text-muted-foreground" : "text-fail/80")} title={value ?? undefined}>
+                <span className={cn("line-clamp-2 min-w-0 flex-1 font-mono text-[11px] break-all", value ? "text-muted-foreground" : "text-fail/80")} title={value ?? undefined}>
                   {value ?? "missing"}
                 </span>
                 {value && <CopyButton value={value} />}

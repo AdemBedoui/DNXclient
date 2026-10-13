@@ -51,7 +51,7 @@ function StatusDot({ status }: { status: PanelStatus }) {
 export function KV({ label, children, mono }: { label: string; children: React.ReactNode; mono?: boolean }) {
   if (children === undefined || children === null || children === "") return null
   return (
-    <div className="grid grid-cols-[minmax(92px,38%)_1fr] items-baseline gap-3 border-b border-dashed border-line py-1.5 last:border-b-0">
+    <div className="grid grid-cols-[minmax(92px,38%)_minmax(0,1fr)] items-baseline gap-3 border-b border-dashed border-line py-1.5 last:border-b-0">
       <dt className="hud-label truncate">{label}</dt>
       <dd className={cn("min-w-0 text-sm break-words", mono && "font-mono text-[12.5px]")}>{children}</dd>
     </div>
