@@ -1,5 +1,5 @@
 import "server-only"
-import { doh, joinTxt, lookup, RR, stripDot, UDP_RESOLVERS, udpResolve4 } from "./doh"
+import { doh, lookupRecords, RR, stripDot, UDP_RESOLVERS, udpResolve4, type RecordWithTtl } from "./doh"
 import type { DnsData, Finding, MxRecord, PropagationResult } from "./types"
 
 export function parseMx(data: string[]): MxRecord[] {
@@ -41,34 +41,31 @@ async function propagation(domain: string): Promise<PropagationResult[]> {
 }
 
 export async function checkDns(domain: string): Promise<{ data: DnsData; findings: Finding[] }> {
-  const [A, AAAA, CNAME, NS, MX, TXT, CAA, SOA, wwwA, wwwCname, ds, prop] = await Promise.all([
-    lookup(domain, "A"),
-    lookup(domain, "AAAA"),
-    lookup(domain, "CNAME"),
-    lookup(domain, "NS"),
-    lookup(domain, "MX"),
-    lookup(domain, "TXT"),
-    lookup(domain, "CAA"),
-    lookup(domain, "SOA"),
-    lookup(`www.${domain}`, "A"),
-    lookup(`www.${domain}`, "CNAME"),
+  const types = ["SOA", "NS", "A", "AAAA", "CNAME", "MX", "TXT", "CAA"] as const
+  const [apex, wwwRecs, ds, prop] = await Promise.all([
+    Promise.all(types.map((t) => lookupRecords(domain, t))),
+    Promise.all([lookupRecords(`www.${domain}`, "CNAME"), lookupRecords(`www.${domain}`, "A"), lookupRecords(`www.${domain}`, "AAAA")]),
     doh(domain, "DS").catch(() => null),
     propagation(domain),
   ])
+  const by = Object.fromEntries(types.map((t, i) => [t, apex[i]])) as Record<(typeof types)[number], RecordWithTtl[]>
+  const values = (t: (typeof types)[number]) => by[t].map((r) => r.value)
+  const www = wwwRecs[0].length ? wwwRecs[0] : [...wwwRecs[1], ...wwwRecs[2]]
 
   // AD flag on an A query means the resolver validated the DNSSEC chain.
   const validated = await doh(domain, "A").then((r) => r.ad).catch(() => false)
 
   const data: DnsData = {
-    A,
-    AAAA,
-    CNAME: CNAME.map(stripDot),
-    NS: NS.map(stripDot).sort(),
-    MX: parseMx(MX),
-    TXT: TXT.map(joinTxt),
-    CAA,
-    SOA: SOA[0],
-    wwwResolves: wwwA.length > 0 || wwwCname.length > 0,
+    records: [...apex.flat(), ...www],
+    A: values("A"),
+    AAAA: values("AAAA"),
+    CNAME: values("CNAME").map(stripDot),
+    NS: values("NS").map(stripDot).sort(),
+    MX: parseMx(values("MX")),
+    TXT: values("TXT"),
+    CAA: values("CAA"),
+    SOA: values("SOA")[0],
+    wwwResolves: www.length > 0,
     dnssec: { signed: !!ds && ds.answers.some((a) => a.type === RR.DS), validated },
     propagation: prop,
   }

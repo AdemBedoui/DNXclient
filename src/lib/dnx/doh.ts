@@ -59,6 +59,25 @@ export async function lookup(name: string, type: RRType): Promise<string[]> {
   }
 }
 
+export interface RecordWithTtl {
+  type: RRType
+  name: string
+  value: string
+  ttl: number
+}
+
+/** Like lookup(), but keeps owner name and TTL for the zone table. */
+export async function lookupRecords(name: string, type: RRType): Promise<RecordWithTtl[]> {
+  try {
+    const r = await doh(name, type)
+    return r.answers
+      .filter((a) => a.type === RR[type])
+      .map((a) => ({ type, name: stripDot(a.name), value: type === "TXT" ? joinTxt(a.data) : a.data, ttl: a.TTL }))
+  } catch {
+    return []
+  }
+}
+
 /** TXT data arrives as one or more quoted chunks: "v=spf1 " "include:…". */
 export function joinTxt(data: string): string {
   const chunks = data.match(/"((?:[^"\\]|\\.)*)"/g)

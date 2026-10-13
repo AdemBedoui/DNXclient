@@ -16,8 +16,8 @@ export async function generateMetadata({ params }: PageProps<"/[domain]">): Prom
   const { domain, valid } = await resolveDomain(params)
   if (!valid) return {}
   return {
-    title: `${domain} — domain health report`,
-    description: `DNS, email security, SSL, security headers and WHOIS for ${domain}.`,
+    title: `${domain} — domain intelligence`,
+    description: `WHOIS, DNS records, network, TLS, email authentication and web security for ${domain}.`,
     alternates: { canonical: `/${domain}` },
   }
 }
@@ -29,16 +29,16 @@ export default async function DomainPage({ params }: PageProps<"/[domain]">) {
 
   return (
     <>
-      <header className="border-b">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-6 sm:px-6">
+      <header className="sticky top-0 z-40 border-b border-line bg-background/75 backdrop-blur-md">
+        <div className="flex items-center gap-3 px-4 py-2.5 sm:gap-6 lg:px-6">
           <Logo compact />
-          <SearchForm size="sm" className="min-w-0 max-w-md flex-1" />
+          <SearchForm size="sm" className="min-w-0 max-w-xl flex-1" />
           <div className="ml-auto shrink-0">
             <ThemeToggle />
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+      <main className="w-full flex-1 px-3 py-4 sm:px-4 lg:px-6 lg:py-6">
         <Report key={domain} domain={domain} />
       </main>
     </>

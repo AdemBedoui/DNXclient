@@ -8,6 +8,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-chakra);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -24,73 +25,88 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-panel: var(--panel);
+  --color-line: var(--line);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-neon: var(--neon);
   --color-pass: var(--pass);
   --color-warn: var(--warn);
   --color-fail: var(--fail);
   --color-info: var(--info);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
+  --radius: 4px;
 }
 
+/* Daylight HUD */
 :root {
-  --radius: 0.75rem;
-  --background: oklch(0.985 0.002 250);
-  --foreground: oklch(0.2 0.02 260);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.02 260);
+  --background: oklch(0.965 0.008 230);
+  --foreground: oklch(0.2 0.03 260);
+  --card: oklch(0.995 0.003 230);
+  --card-foreground: oklch(0.2 0.03 260);
+  --panel: oklch(1 0 0 / 0.72);
+  --line: oklch(0.45 0.08 220 / 0.18);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.02 260);
-  --primary: oklch(0.22 0.02 260);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.955 0.005 250);
-  --secondary-foreground: oklch(0.25 0.02 260);
-  --muted: oklch(0.955 0.005 250);
-  --muted-foreground: oklch(0.5 0.02 260);
-  --accent: oklch(0.95 0.01 250);
-  --accent-foreground: oklch(0.25 0.02 260);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.008 250);
-  --input: oklch(0.89 0.01 250);
-  --ring: oklch(0.6 0.17 255);
-  --brand: oklch(0.56 0.2 258);
+  --popover-foreground: oklch(0.2 0.03 260);
+  --primary: oklch(0.22 0.03 260);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.93 0.012 230);
+  --secondary-foreground: oklch(0.25 0.03 260);
+  --muted: oklch(0.93 0.012 230);
+  --muted-foreground: oklch(0.48 0.03 250);
+  --accent: oklch(0.92 0.02 220);
+  --accent-foreground: oklch(0.22 0.03 260);
+  --destructive: oklch(0.58 0.22 20);
+  --border: oklch(0.45 0.08 220 / 0.18);
+  --input: oklch(0.45 0.08 220 / 0.25);
+  --ring: oklch(0.6 0.13 210);
+  --brand: oklch(0.56 0.13 215);
   --brand-foreground: oklch(0.99 0 0);
-  --pass: oklch(0.6 0.15 155);
-  --warn: oklch(0.7 0.16 70);
-  --fail: oklch(0.6 0.21 25);
-  --info: oklch(0.6 0.13 235);
-  --grid: oklch(0.2 0.02 260 / 6%);
+  --neon: oklch(0.55 0.22 305);
+  --pass: oklch(0.58 0.16 155);
+  --warn: oklch(0.66 0.16 65);
+  --fail: oklch(0.58 0.22 18);
+  --info: oklch(0.58 0.14 240);
+  --grid: oklch(0.45 0.08 220 / 0.07);
+  --glow: oklch(0.7 0.13 210 / 0.18);
+  --glow-2: oklch(0.65 0.2 305 / 0.1);
 }
 
+/* Night ops */
 .dark {
-  --background: oklch(0.155 0.012 260);
-  --foreground: oklch(0.96 0.005 250);
-  --card: oklch(0.195 0.014 260);
-  --card-foreground: oklch(0.96 0.005 250);
-  --popover: oklch(0.21 0.014 260);
-  --popover-foreground: oklch(0.96 0.005 250);
-  --primary: oklch(0.96 0.005 250);
-  --primary-foreground: oklch(0.2 0.02 260);
-  --secondary: oklch(0.25 0.015 260);
-  --secondary-foreground: oklch(0.96 0.005 250);
-  --muted: oklch(0.24 0.014 260);
-  --muted-foreground: oklch(0.68 0.015 255);
-  --accent: oklch(0.26 0.018 260);
-  --accent-foreground: oklch(0.96 0.005 250);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 9%);
-  --input: oklch(1 0 0 / 13%);
-  --ring: oklch(0.68 0.16 255);
-  --brand: oklch(0.68 0.17 255);
-  --brand-foreground: oklch(0.16 0.02 260);
-  --pass: oklch(0.74 0.16 155);
-  --warn: oklch(0.8 0.15 75);
-  --fail: oklch(0.7 0.19 25);
-  --info: oklch(0.74 0.12 235);
-  --grid: oklch(1 0 0 / 5%);
+  --background: oklch(0.13 0.022 265);
+  --foreground: oklch(0.94 0.015 220);
+  --card: oklch(0.165 0.026 265);
+  --card-foreground: oklch(0.94 0.015 220);
+  --panel: oklch(0.17 0.03 265 / 0.62);
+  --line: oklch(0.82 0.12 200 / 0.13);
+  --popover: oklch(0.19 0.03 265);
+  --popover-foreground: oklch(0.94 0.015 220);
+  --primary: oklch(0.94 0.015 220);
+  --primary-foreground: oklch(0.15 0.02 265);
+  --secondary: oklch(0.22 0.03 265);
+  --secondary-foreground: oklch(0.94 0.015 220);
+  --muted: oklch(0.22 0.03 265);
+  --muted-foreground: oklch(0.67 0.035 235);
+  --accent: oklch(0.24 0.04 250);
+  --accent-foreground: oklch(0.94 0.015 220);
+  --destructive: oklch(0.68 0.21 18);
+  --border: oklch(0.82 0.12 200 / 0.13);
+  --input: oklch(0.82 0.12 200 / 0.2);
+  --ring: oklch(0.85 0.14 195);
+  --brand: oklch(0.86 0.14 195);
+  --brand-foreground: oklch(0.15 0.03 230);
+  --neon: oklch(0.72 0.22 310);
+  --pass: oklch(0.86 0.2 150);
+  --warn: oklch(0.85 0.16 80);
+  --fail: oklch(0.7 0.22 15);
+  --info: oklch(0.8 0.11 230);
+  --grid: oklch(0.82 0.12 200 / 0.045);
+  --glow: oklch(0.8 0.14 195 / 0.14);
+  --glow-2: oklch(0.65 0.24 310 / 0.12);
 }
 
 @layer base {
@@ -99,23 +115,87 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(ellipse 70% 45% at 15% -5%, var(--glow), transparent 60%),
+      radial-gradient(ellipse 55% 40% at 95% 0%, var(--glow-2), transparent 60%),
+      linear-gradient(to right, var(--grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+    background-size: auto, auto, 48px 48px, 48px 48px;
+    background-attachment: fixed;
   }
   ::selection {
-    background: color-mix(in oklch, var(--brand) 30%, transparent);
+    background: color-mix(in oklch, var(--brand) 35%, transparent);
   }
 }
 
-@utility bg-grid {
-  background-image:
-    linear-gradient(to right, var(--grid) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
-  background-size: 44px 44px;
+/* HUD panel: translucent surface with bracketed corners */
+@utility hud {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(10px);
+  &::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    pointer-events: none;
+    --c: var(--brand);
+    --s: 10px;
+    background:
+      linear-gradient(var(--c), var(--c)) top left / var(--s) 1px no-repeat,
+      linear-gradient(var(--c), var(--c)) top left / 1px var(--s) no-repeat,
+      linear-gradient(var(--c), var(--c)) top right / var(--s) 1px no-repeat,
+      linear-gradient(var(--c), var(--c)) top right / 1px var(--s) no-repeat,
+      linear-gradient(var(--c), var(--c)) bottom left / var(--s) 1px no-repeat,
+      linear-gradient(var(--c), var(--c)) bottom left / 1px var(--s) no-repeat,
+      linear-gradient(var(--c), var(--c)) bottom right / var(--s) 1px no-repeat,
+      linear-gradient(var(--c), var(--c)) bottom right / 1px var(--s) no-repeat;
+    opacity: 0.75;
+  }
 }
 
-@utility glow-brand {
-  background: radial-gradient(
-    ellipse 60% 50% at 50% 0%,
-    color-mix(in oklch, var(--brand) 22%, transparent),
-    transparent 70%
-  );
+@utility hud-label {
+  font-family: var(--font-geist-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+@utility text-glow {
+  text-shadow: 0 0 18px color-mix(in oklch, currentColor 45%, transparent);
+}
+
+@utility glow-dot {
+  box-shadow: 0 0 8px 1px color-mix(in oklch, currentColor 70%, transparent);
+}
+
+/* Slow scan line sweeping down the viewport */
+@utility scanline {
+  pointer-events: none;
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  height: 120px;
+  background: linear-gradient(to bottom, transparent, color-mix(in oklch, var(--brand) 6%, transparent), transparent);
+  animation: scan 7s linear infinite;
+  z-index: 0;
+}
+
+@keyframes scan {
+  from { transform: translateY(-120px); }
+  to { transform: translateY(100vh); }
+}
+
+@keyframes radar {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scanline { display: none; }
+  * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; }
 }

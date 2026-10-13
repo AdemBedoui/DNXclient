@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowRight, Loader2, Search } from "lucide-react"
+import { ArrowRight, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState, useTransition } from "react"
 import { normalizeDomain, validationMessage } from "@/lib/dnx/domain"
@@ -36,12 +36,14 @@ export function SearchForm({
     <form onSubmit={submit} className={cn("w-full", className)} role="search">
       <div
         className={cn(
-          "group flex items-center gap-2 rounded-xl border bg-card shadow-sm transition focus-within:border-brand/60 focus-within:ring-4 focus-within:ring-brand/15",
-          lg ? "p-2 pl-4" : "p-1 pl-3",
+          "hud flex items-center gap-3 transition focus-within:shadow-[0_0_0_1px_var(--brand),0_0_32px_-6px_var(--brand)]",
+          lg ? "p-2 pl-5" : "p-1 pl-3",
           error && "border-fail/60",
         )}
       >
-        <Search className={cn("shrink-0 text-muted-foreground", lg ? "size-5" : "size-4")} aria-hidden />
+        <span className={cn("shrink-0 font-mono text-brand select-none", lg ? "text-lg" : "text-sm")} aria-hidden>
+          {lg ? "scan://" : ">"}
+        </span>
         <input
           type="text"
           inputMode="url"
@@ -52,32 +54,32 @@ export function SearchForm({
           aria-label="Domain name"
           aria-invalid={!!error}
           aria-describedby={error ? "search-error" : undefined}
-          placeholder={lg ? "Enter a domain, e.g. example.tn" : "Check another domain"}
+          placeholder={lg ? "example.tn" : "scan another domain"}
           value={value}
           onChange={(e) => {
             setValue(e.target.value)
             if (error) setError(null)
           }}
           className={cn(
-            "min-w-0 flex-1 bg-transparent font-mono outline-none placeholder:font-sans placeholder:text-muted-foreground/70",
-            lg ? "h-11 text-lg" : "h-8 text-sm",
+            "min-w-0 flex-1 bg-transparent font-mono caret-brand outline-none placeholder:text-muted-foreground/50",
+            lg ? "h-12 text-lg sm:text-xl" : "h-8 text-sm",
           )}
         />
         <button
           type="submit"
           disabled={pending || !value.trim()}
           className={cn(
-            "inline-flex shrink-0 items-center gap-2 rounded-lg bg-brand font-medium text-brand-foreground transition hover:brightness-110 disabled:opacity-50",
-            lg ? "h-11 px-5" : "h-8 px-3 text-sm",
+            "inline-flex shrink-0 items-center gap-2 bg-brand font-mono font-semibold tracking-widest text-brand-foreground uppercase transition hover:shadow-[0_0_24px_-2px_var(--brand)] disabled:opacity-40 disabled:hover:shadow-none",
+            lg ? "h-12 px-6 text-sm" : "h-8 px-3 text-xs",
           )}
         >
-          {pending ? <Loader2 className="size-4 animate-spin" /> : lg ? null : <ArrowRight className="size-4" />}
-          {lg ? (pending ? "Checking…" : "Check domain") : <span className="sr-only">Check</span>}
+          {pending ? <Loader2 className="size-4 animate-spin" /> : !lg && <ArrowRight className="size-4" />}
+          {lg ? (pending ? "Scanning" : "Scan") : <span className="sr-only">Scan</span>}
         </button>
       </div>
       {error && (
-        <p id="search-error" role="alert" className="mt-2 px-1 text-sm text-fail">
-          {error}
+        <p id="search-error" role="alert" className="mt-2 px-1 font-mono text-xs text-fail">
+          ! {error}
         </p>
       )}
     </form>

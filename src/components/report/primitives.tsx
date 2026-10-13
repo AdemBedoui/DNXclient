@@ -6,45 +6,70 @@ import { toast } from "sonner"
 import type { Severity } from "@/lib/dnx/types"
 import { cn } from "@/lib/utils"
 
+export type PanelStatus = "loading" | "done" | "error"
+
 export function Panel({
+  code,
   title,
-  icon: Icon,
+  status = "done",
   action,
   children,
   className,
+  bodyClassName,
 }: {
+  code: string
   title: string
-  icon?: React.ComponentType<{ className?: string }>
+  status?: PanelStatus
   action?: React.ReactNode
   children: React.ReactNode
   className?: string
+  bodyClassName?: string
 }) {
   return (
-    <section className={cn("rounded-xl border bg-card", className)}>
-      <header className="flex items-center justify-between gap-3 border-b px-4 py-3 sm:px-5">
-        <h3 className="flex items-center gap-2 text-sm font-medium">
-          {Icon && <Icon className="size-4 text-muted-foreground" />}
-          {title}
-        </h3>
-        {action}
+    <section className={cn("hud flex min-w-0 flex-col", className)} aria-busy={status === "loading"}>
+      <header className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
+        <h2 className="flex items-center gap-2.5">
+          <span className="font-mono text-[10.5px] text-brand">{code}</span>
+          <span className="h-3 w-px bg-line" />
+          <span className="font-display text-sm font-semibold tracking-[0.12em] uppercase">{title}</span>
+        </h2>
+        <div className="flex items-center gap-3">
+          {action}
+          <StatusDot status={status} />
+        </div>
       </header>
-      <div className="p-4 sm:p-5">{children}</div>
+      <div className={cn("min-w-0 flex-1 p-4", bodyClassName)}>{children}</div>
     </section>
   )
+}
+
+function StatusDot({ status }: { status: PanelStatus }) {
+  const cls = status === "loading" ? "bg-warn text-warn animate-pulse" : status === "error" ? "bg-fail text-fail" : "bg-pass text-pass"
+  return <span className={cn("glow-dot size-1.5 rounded-full", cls)} title={status} />
 }
 
 export function KV({ label, children, mono }: { label: string; children: React.ReactNode; mono?: boolean }) {
   if (children === undefined || children === null || children === "") return null
   return (
-    <div className="flex flex-col gap-0.5 py-2 sm:flex-row sm:items-baseline sm:gap-4">
-      <dt className="shrink-0 text-xs text-muted-foreground sm:w-36">{label}</dt>
-      <dd className={cn("min-w-0 text-sm break-words", mono && "font-mono text-[13px]")}>{children}</dd>
+    <div className="grid grid-cols-[minmax(92px,38%)_1fr] items-baseline gap-3 border-b border-dashed border-line py-1.5 last:border-b-0">
+      <dt className="hud-label truncate">{label}</dt>
+      <dd className={cn("min-w-0 text-sm break-words", mono && "font-mono text-[12.5px]")}>{children}</dd>
     </div>
   )
 }
 
-export function KVList({ children }: { children: React.ReactNode }) {
-  return <dl className="divide-y divide-border/60">{children}</dl>
+export function KVList({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <dl className={className}>{children}</dl>
+}
+
+export function SubHead({ children, right }: { children: React.ReactNode; right?: React.ReactNode }) {
+  return (
+    <div className="mt-4 mb-2 flex items-center gap-2 first:mt-0">
+      <span className="hud-label">{children}</span>
+      <span className="h-px flex-1 bg-line" />
+      {right}
+    </div>
+  )
 }
 
 export function CopyButton({ value, label = "Copy" }: { value: string; label?: string }) {
@@ -63,41 +88,33 @@ export function CopyButton({ value, label = "Copy" }: { value: string; label?: s
           toast.error("Couldn't copy to clipboard")
         }
       }}
-      className="shrink-0 rounded-md p-1.5 text-muted-foreground opacity-60 transition hover:bg-accent hover:text-foreground hover:opacity-100 focus-visible:opacity-100 group-hover:opacity-100"
+      className="shrink-0 p-1 text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-brand focus-visible:opacity-100"
     >
       {copied ? <Check className="size-3.5 text-pass" /> : <Copy className="size-3.5" />}
     </button>
   )
 }
 
-export function RecordList({ label, records, empty = "None" }: { label: string; records: string[]; empty?: string }) {
+export function MonoList({ items, empty = "none" }: { items: string[]; empty?: string }) {
+  if (items.length === 0) return <p className="font-mono text-xs text-muted-foreground/70">— {empty}</p>
   return (
-    <div>
-      <div className="mb-1.5 flex items-center gap-2">
-        <span className="font-mono text-xs font-semibold text-muted-foreground">{label}</span>
-        {records.length > 0 && <span className="text-xs text-muted-foreground/70">{records.length}</span>}
-      </div>
-      {records.length === 0 ? (
-        <p className="text-sm text-muted-foreground/70 italic">{empty}</p>
-      ) : (
-        <ul className="overflow-hidden rounded-lg border">
-          {records.map((r, i) => (
-            <li key={i} className="group flex items-start gap-2 border-b px-3 py-2 last:border-b-0 even:bg-muted/30">
-              <code className="min-w-0 flex-1 font-mono text-[13px] break-all">{r}</code>
-              <CopyButton value={r} />
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <ul className="space-y-1">
+      {items.map((r, i) => (
+        <li key={i} className="group flex items-start gap-2 font-mono text-[12.5px]">
+          <span className="mt-[7px] size-1 shrink-0 bg-brand/70" />
+          <span className="min-w-0 flex-1 break-all">{r}</span>
+          <CopyButton value={r} />
+        </li>
+      ))}
+    </ul>
   )
 }
 
-export const SEVERITY_STYLE: Record<Severity, { icon: typeof Info; text: string; bg: string; dot: string; label: string }> = {
-  fail: { icon: XCircle, text: "text-fail", bg: "bg-fail/10", dot: "bg-fail", label: "Critical" },
-  warn: { icon: AlertTriangle, text: "text-warn", bg: "bg-warn/10", dot: "bg-warn", label: "Warning" },
-  info: { icon: Info, text: "text-info", bg: "bg-info/10", dot: "bg-info", label: "Suggestion" },
-  pass: { icon: CheckCircle2, text: "text-pass", bg: "bg-pass/10", dot: "bg-pass", label: "Passed" },
+export const SEVERITY_STYLE: Record<Severity, { icon: typeof Info; text: string; bg: string; dot: string; border: string; label: string }> = {
+  fail: { icon: XCircle, text: "text-fail", bg: "bg-fail/10", dot: "bg-fail", border: "border-fail/40", label: "Critical" },
+  warn: { icon: AlertTriangle, text: "text-warn", bg: "bg-warn/10", dot: "bg-warn", border: "border-warn/40", label: "Warning" },
+  info: { icon: Info, text: "text-info", bg: "bg-info/10", dot: "bg-info", border: "border-info/40", label: "Suggestion" },
+  pass: { icon: CheckCircle2, text: "text-pass", bg: "bg-pass/10", dot: "bg-pass", border: "border-pass/40", label: "Passed" },
 }
 
 export function SeverityIcon({ severity, className }: { severity: Severity; className?: string }) {
@@ -105,44 +122,59 @@ export function SeverityIcon({ severity, className }: { severity: Severity; clas
   return <Icon className={cn("size-4 shrink-0", text, className)} aria-label={SEVERITY_STYLE[severity].label} />
 }
 
-export function Pill({ tone, children }: { tone: Severity | "neutral"; children: React.ReactNode }) {
-  const cls = tone === "neutral" ? "bg-muted text-muted-foreground" : `${SEVERITY_STYLE[tone].bg} ${SEVERITY_STYLE[tone].text}`
-  return <span className={cn("inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium", cls)}>{children}</span>
+export function Tag({ tone = "neutral", children, className }: { tone?: Severity | "neutral" | "brand"; children: React.ReactNode; className?: string }) {
+  const cls =
+    tone === "neutral"
+      ? "border-line text-muted-foreground"
+      : tone === "brand"
+        ? "border-brand/40 text-brand bg-brand/10"
+        : `${SEVERITY_STYLE[tone].border} ${SEVERITY_STYLE[tone].text} ${SEVERITY_STYLE[tone].bg}`
+  return <span className={cn("inline-flex items-center gap-1 border px-1.5 py-px font-mono text-[10.5px] tracking-wider uppercase", cls, className)}>{children}</span>
 }
 
 export function Skeleton({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return <div className={cn("animate-pulse rounded-md bg-muted", className)} style={style} />
+  return <div className={cn("animate-pulse bg-brand/10", className)} style={style} />
 }
 
-export function PanelSkeleton({ rows = 4 }: { rows?: number }) {
+export function LinesSkeleton({ rows = 5 }: { rows?: number }) {
   return (
-    <div className="rounded-xl border bg-card p-5">
-      <Skeleton className="mb-5 h-4 w-32" />
-      <div className="space-y-3">
-        {Array.from({ length: rows }, (_, i) => (
-          <Skeleton key={i} className="h-4" style={{ width: `${90 - i * 12}%` }} />
-        ))}
-      </div>
+    <div className="space-y-2.5">
+      {Array.from({ length: rows }, (_, i) => (
+        <Skeleton key={i} className="h-3.5" style={{ width: `${92 - ((i * 17) % 45)}%` }} />
+      ))}
     </div>
   )
 }
 
 export function ErrorNote({ message }: { message: string }) {
-  return (
-    <div className="flex items-center gap-2 rounded-xl border border-fail/30 bg-fail/5 p-4 text-sm text-fail">
-      <XCircle className="size-4" /> This check failed: {message}
-    </div>
-  )
+  return <p className="font-mono text-xs text-fail">! check failed: {message}</p>
 }
 
 export function formatDate(iso?: string) {
   if (!iso) return undefined
   const d = new Date(iso)
   if (isNaN(d.getTime())) return iso
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+  return d.toISOString().slice(0, 10)
 }
 
 export function daysFrom(iso?: string) {
   if (!iso) return undefined
   return Math.floor((new Date(iso).getTime() - Date.now()) / 86_400_000)
+}
+
+/** "7y 4m" style age from an ISO date in the past. */
+export function ageOf(iso?: string) {
+  const d = daysFrom(iso)
+  if (d === undefined) return undefined
+  const days = -d
+  const y = Math.floor(days / 365)
+  const m = Math.floor((days % 365) / 30)
+  return y ? `${y}y ${m}m` : m ? `${m}m` : `${days}d`
+}
+
+export function ttl(s: number) {
+  if (s >= 86400 && s % 86400 === 0) return `${s / 86400}d`
+  if (s >= 3600 && s % 3600 === 0) return `${s / 3600}h`
+  if (s >= 60) return `${Math.round(s / 60)}m`
+  return `${s}s`
 }

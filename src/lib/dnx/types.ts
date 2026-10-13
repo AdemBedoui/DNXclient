@@ -66,7 +66,16 @@ export interface PropagationResult {
   ok: boolean
 }
 
+export interface DnsRecord {
+  type: string
+  name: string
+  value: string
+  ttl: number
+}
+
 export interface DnsData {
+  /** Every record found, in zone-file order, for the records table. */
+  records: DnsRecord[]
   A: string[]
   AAAA: string[]
   CNAME: string[]
