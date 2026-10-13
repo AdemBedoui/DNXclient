@@ -26,8 +26,10 @@ export function Panel({
   bodyClassName?: string
 }) {
   return (
-    <section className={cn("hud flex min-w-0 flex-col", className)} aria-busy={status === "loading"}>
-      <header className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
+    // min-h-0 + a scrolling body let the grid fix a row's height: content that
+    // doesn't fit scrolls inside the panel instead of pushing the row taller.
+    <section className={cn("hud flex min-h-0 min-w-0 flex-col", className)} aria-busy={status === "loading"}>
+      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-line px-4 py-2.5">
         <h2 className="flex items-center gap-2.5">
           <span className="font-mono text-[10.5px] text-brand">{code}</span>
           <span className="h-3 w-px bg-line" />
@@ -38,7 +40,7 @@ export function Panel({
           <StatusDot status={status} />
         </div>
       </header>
-      <div className={cn("min-w-0 flex-1 p-4", bodyClassName)}>{children}</div>
+      <div className={cn("scroll-thin min-h-0 min-w-0 flex-1 overflow-y-auto p-4", bodyClassName)}>{children}</div>
     </section>
   )
 }

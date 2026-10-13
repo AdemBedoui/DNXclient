@@ -7,7 +7,7 @@ import type { Category, Finding } from "@/lib/dnx/types"
 import { cn } from "@/lib/utils"
 import { FindingList } from "./findings"
 import { DnsPanel, EmailPanel, NetworkPanel, PropagationPanel, TlsPanel, WebPanel, WhoisPanel } from "./panels"
-import { ageOf, daysFrom, formatDate, Skeleton, SEVERITY_STYLE, Tag } from "./primitives"
+import { ageOf, daysFrom, formatDate, Panel, Skeleton, SEVERITY_STYLE, Tag } from "./primitives"
 import { ScoreRing } from "./score-ring"
 import { useReport, type ReportState } from "./use-report"
 
@@ -57,25 +57,25 @@ export function Report({ domain, initial }: { domain: string; initial?: Partial<
 
       {/* ---- Raw intelligence ---- */}
       {/*
-        Masonry-style: on xl the panels sit in three independent columns so each
-        is only as tall as its content (a long panel never stretches its
-        neighbours). Below xl the column wrappers use `display: contents`, so the
-        panels flow into a normal 1–2 column grid in the `order` given.
+        Aligned dashboard grid. On xl there are two rows:
+          WHOIS | DNS zone | Network + Propagation
+          Email | TLS      | Web
+        Each row is fit-content(38rem): as tall as its tallest panel, capped, and
+        every panel stretches to the row height so all edges line up. Content
+        beyond the cap scrolls inside its panel (Panel bodies are scrollable).
+        Below xl the right-hand stack is `display: contents` and panels pair up
+        by similar height via `order` (WHOIS|TLS, Network|Propagation).
       */}
-      <div className="grid grid-flow-row-dense grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-12">
-        <div className="contents xl:col-span-3 xl:flex xl:flex-col xl:gap-4">
-          <WhoisPanel state={state} className="order-1 xl:order-none" />
-          <TlsPanel state={state} className="order-6 xl:order-none" />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-12 xl:grid-rows-[fit-content(38rem)_fit-content(38rem)]">
+        <WhoisPanel state={state} className="order-1 xl:order-none xl:col-span-3" />
+        <DnsPanel state={state} domain={domain} className="order-3 md:col-span-2 xl:order-none xl:col-span-6" />
+        <div className="contents xl:col-span-3 xl:flex xl:min-h-0 xl:flex-col xl:gap-4">
+          <NetworkPanel state={state} className="order-4 xl:order-none xl:flex-1" />
+          <PropagationPanel state={state} className="order-5 xl:order-none xl:shrink-0" />
         </div>
-        <div className="contents xl:col-span-6 xl:flex xl:flex-col xl:gap-4">
-          <DnsPanel state={state} domain={domain} className="order-2 md:col-span-2 xl:order-none" />
-          <EmailPanel state={state} className="order-5 md:col-span-2 xl:order-none" />
-        </div>
-        <div className="contents xl:col-span-3 xl:flex xl:flex-col xl:gap-4">
-          <NetworkPanel state={state} className="order-3 xl:order-none" />
-          <PropagationPanel state={state} className="order-4 xl:order-none" />
-        </div>
-        <WebPanel state={state} className="order-7 md:col-span-2 xl:col-span-12" />
+        <EmailPanel state={state} className="order-6 md:col-span-2 xl:order-none xl:col-span-5" />
+        <TlsPanel state={state} className="order-2 xl:order-none xl:col-span-3" />
+        <WebPanel state={state} className="order-7 md:col-span-2 xl:order-none xl:col-span-4" />
       </div>
 
       {/* ---- Analysis ---- */}
@@ -168,13 +168,13 @@ function Analysis({ findings, score, done }: { findings: Finding[]; score: Score
   return (
     <section id="analysis" className="scroll-mt-20 pt-6">
       <div className="mb-4 flex items-center gap-4">
-        <span className="font-mono text-[10.5px] text-brand">08</span>
         <h2 className="font-display text-xl font-bold tracking-[0.14em] uppercase">Analysis & suggestions</h2>
         <span className="h-px flex-1 bg-gradient-to-r from-brand/50 to-transparent" />
       </div>
 
+      {/* Two panels stretched to the same height, like the data grid above. */}
       <div className="grid gap-4 xl:grid-cols-12">
-        <aside className="hud p-5 xl:col-span-3">
+        <Panel code="08" title="Health score" status={done ? "done" : "loading"} className="xl:col-span-3">
           <div className="flex items-center gap-5">
             <ScoreRing score={score} loading={!done} size="lg" />
             <div className="space-y-1.5 text-sm">
@@ -190,27 +190,21 @@ function Analysis({ findings, score, done }: { findings: Finding[]; score: Score
           <div className="mt-6 space-y-3">
             {(Object.keys(CATEGORY_LABEL) as Category[]).map((c) => <CategoryBar key={c} category={c} findings={findings} />)}
           </div>
-        </aside>
+        </Panel>
 
-        <div className="space-y-4 xl:col-span-9">
-          <div className="grid gap-4 lg:grid-cols-2">
-            <Group title="Fix these" count={issues.length} tone="fail" empty={done ? "No issues found. Nice work." : undefined}>
-              <FindingList findings={issues} showCategory />
-            </Group>
-            <Group title="Recommended" count={tips.length} tone="info" empty={done ? "Nothing to recommend." : undefined}>
-              <FindingList findings={tips} showCategory />
-            </Group>
+        <Panel code="09" title="Findings" status={done ? "done" : "loading"} className="xl:col-span-9" bodyClassName="p-0">
+          <div className="grid h-full divide-y divide-line lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+            <Column title="Fix these" count={issues.length} tone="fail" empty={done ? "No issues found — nice work." : "Scanning…"}>
+              <FindingList findings={issues} showCategory bare />
+            </Column>
+            <Column title="Recommended" count={tips.length} tone="info" empty={done ? "Nothing to recommend." : "Scanning…"}>
+              <FindingList findings={tips} showCategory bare />
+            </Column>
+            <Column title="Passed" count={passed.length} tone="pass" empty={done ? "No passed checks." : "Scanning…"}>
+              <FindingList findings={passed} showCategory bare />
+            </Column>
           </div>
-          {!done && <Skeleton className="h-24" />}
-          {passed.length > 0 && (
-            <details className="group">
-              <summary className="hud-label mb-3 cursor-pointer list-none hover:text-pass [&::-webkit-details-marker]:hidden">
-                <span className="inline-block transition group-open:rotate-90">▸</span> {passed.length} checks passed
-              </summary>
-              <FindingList findings={passed} showCategory className="lg:grid lg:grid-cols-2 lg:divide-y-0" />
-            </details>
-          )}
-        </div>
+        </Panel>
       </div>
     </section>
   )
@@ -232,16 +226,15 @@ function CategoryBar({ category, findings }: { category: Category; findings: Fin
   )
 }
 
-function Group({ title, count, tone, empty, children }: { title: string; count: number; tone: "fail" | "info"; empty?: string; children: React.ReactNode }) {
-  if (count === 0 && !empty) return null
+function Column({ title, count, tone, empty, children }: { title: string; count: number; tone: "fail" | "info" | "pass"; empty: string; children: React.ReactNode }) {
   return (
-    <div>
-      <h3 className="mb-2 flex items-center gap-2">
+    <div className="min-w-0">
+      <h3 className="flex items-center gap-2 border-b border-line px-4 py-2.5">
         <span className={cn("size-1.5", SEVERITY_STYLE[tone].dot)} />
-        <span className="font-display text-sm font-semibold tracking-[0.12em] uppercase">{title}</span>
-        <span className="font-mono text-xs text-muted-foreground">[{count}]</span>
+        <span className="hud-label text-foreground!">{title}</span>
+        <span className="ml-auto font-mono text-[11px] text-muted-foreground tabular-nums">{count}</span>
       </h3>
-      {count === 0 ? <p className="border border-dashed border-line p-4 font-mono text-xs text-muted-foreground">{empty}</p> : children}
+      {count === 0 ? <p className="px-4 py-4 font-mono text-xs text-muted-foreground">{empty}</p> : children}
     </div>
   )
 }

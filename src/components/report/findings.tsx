@@ -48,10 +48,11 @@ export function FindingRow({ finding: f, showCategory }: { finding: Finding; sho
   )
 }
 
-export function FindingList({ findings, showCategory, className }: { findings: Finding[]; showCategory?: boolean; className?: string }) {
+/** `bare` drops the panel frame, for lists that already sit inside a Panel. */
+export function FindingList({ findings, showCategory, className, bare }: { findings: Finding[]; showCategory?: boolean; className?: string; bare?: boolean }) {
   if (findings.length === 0) return null
   return (
-    <ul className={cn("hud divide-y divide-line", className)}>
+    <ul className={cn("divide-y divide-line", !bare && "hud", className)}>
       {sortFindings(findings).map((f) => (
         <FindingRow key={f.id} finding={f} showCategory={showCategory} />
       ))}

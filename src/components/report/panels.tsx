@@ -117,7 +117,7 @@ export function DnsPanel({ state, domain, className }: { state: ReportState; dom
       title="DNS zone"
       rows={14}
       className={className}
-      bodyClassName="p-0"
+      bodyClassName="overflow-hidden p-0"
       action={
         s.status === "done" && (
           <span className="font-mono text-[10.5px] text-muted-foreground">
@@ -165,7 +165,7 @@ function Zone({ d, domain }: { d: DnsData; domain: string }) {
           <Copy className="size-3" /> Copy zone
         </button>
       </div>
-      <div className="max-h-[560px] flex-1 overflow-auto">
+      <div className="scroll-thin max-h-[560px] min-h-0 flex-1 overflow-auto xl:max-h-none">
         <table className="w-full border-collapse text-left">
           <thead className="sticky top-0 z-10 bg-card/95 backdrop-blur">
             <tr className="hud-label">
@@ -489,7 +489,7 @@ function Web({ d }: { d: WebData }) {
   if (!d.reachable) return <p className="font-mono text-xs text-warn">! {d.error}</p>
   const hops = [...d.redirects, { url: d.finalUrl!, status: d.status! }]
   return (
-    <div className="grid gap-x-6 gap-y-2 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+    <div className="grid gap-x-6 gap-y-2 md:grid-cols-2 xl:grid-cols-1">
       <div className="min-w-0">
         <KVList>
           <KV label="Title">{d.title}</KV>
